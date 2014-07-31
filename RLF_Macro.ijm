@@ -11,23 +11,14 @@ run("Duplicate...", "title=findBBs.dcm");
 
 selectWindow("findBBs.dcm");
 //Find the BB's in the image
-if (indexOf(img_name,"20x20") > 0)
-{
-	setThreshold(13700, 14000);//20X20
-}
-else if (indexOf(img_name,"10x10") > 0)
-{
-	setThreshold(13900, 14100);//10X10
-}
-else
-{
-	setThreshold(13950, 14150);//5X5
-}
-run("Create Mask");
+run("Find Maxima...", "noise=150 output=[Maxima Within Tolerance]");
+//run("Create Mask");
 run("Gaussian Blur...", "sigma=5"); //attempt to eliminate the delta shaped BB's
-setThreshold(5, 20);
+setThreshold(5, 35);
+//run("Invert");
+//setAutoThreshold("Triangle");
 run("Create Mask");
-run("Analyze Particles...", "size=1-1000 circularity=0.8-1.00 show=Masks exclude add");
+run("Analyze Particles...", "size=1-infinity circularity=0.85-1.00 show=Masks exclude add");
 
 //Find the field edge in the image
 selectWindow("findEdge.dcm");
@@ -58,8 +49,19 @@ for (i = 0; i < cnt; i++)
 		}
 	}
 }
-
+//Clean up windows
+run("Close");
+selectWindow("findBBs.dcm");
+run("Close");
+selectWindow("findBBs.dcm Maxima");
+run("Close");
+selectWindow("findEdge.dcm");
+run("Close");
+selectWindow("Mask of mask");
+run("Close");
+selectWindow("mask");
 selectWindow("Log");
+
 
 
 
