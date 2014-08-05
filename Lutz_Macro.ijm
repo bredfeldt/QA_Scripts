@@ -98,5 +98,5 @@ setMinAndMax(27700, 32975);
 //save results
 dir1 = File.directory;
 getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
-saveAs("Tiff", dir1 + "Lutz_Result_" + d2s(year,0) + d2s(month+1,0) + d2s(dayOfMonth,0) + ".tif");
+saveAs("Tiff", dir1 + "Lutz_Result_" + d2s(year,0) + "_" + d2s(month+1,0) + "_" + d2s(dayOfMonth,0) + ".tif");
 setLocation(0,0);
