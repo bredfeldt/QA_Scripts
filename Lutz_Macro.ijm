@@ -8,9 +8,11 @@ path2 = File.openDialog("Select Image #2");
 
 open(path1);
 rename("im1");
+dOff = getWidth(); //offset for processing via images (keeps numbers from being negative)
 run("Duplicate...", "title=findBB1.dcm");
 run("Find Maxima...", "noise=100 output=[Maxima Within Tolerance]");
 run("Analyze Particles...", "size=1-infinity circularity=0.85-1.00 show=Masks exclude add");
+run("Close");
 cnt = roiManager("count");
 x1 = newArray(cnt);
 y1 = newArray(cnt);
@@ -32,6 +34,7 @@ run("Flip Horizontally");
 run("Duplicate...", "title=findBB2.dcm");
 run("Find Maxima...", "noise=100 output=[Maxima Within Tolerance]");
 run("Analyze Particles...", "size=1-infinity circularity=0.85-1.00 show=Masks exclude add");
+run("Close");
 cnt = roiManager("count");
 x2 = newArray(cnt);
 y2 = newArray(cnt);
@@ -54,39 +57,46 @@ for (i = 0; i < x1.length; i++)
 {
 	for (j = 0; j < x2.length; j++)
 	{
-		dx[idx] = x1[i]-x2[j];
-		dy[idx] = y1[i]-y2[j];		
+		dx[idx] = x1[i]-x2[j]+dOff;
+		dy[idx] = y1[i]-y2[j]+dOff;
 		idx++;
 	}
 }
 
 //find the most common offset distance in each direction
-print("num x1: " + x1.length);
-print("num x2: " + x2.length);
-print("num comp: " + dx.length);
-newImage("dx arr","8-bit",cnt,1,1);
+newImage("dx arr","16-bit",cnt,1,1);
 for (i = 0; i < dx.length; i++)
 {
 	//change to integer
 	setPixel(i,0,round(dx[i]));	
 }
 List.setMeasurements;
-dxm = List.getValue("Mode");
-print("mode x: " + dxm);
+dxm = List.getValue("Mode")-dOff;
+run("Close");
+print("shift x: " + dxm);
 
-newImage("dy arr","8-bit",cnt,1,1);
-for (i = 0; i < dx.length; i++)
+newImage("dy arr","16-bit",cnt,1,1);
+for (i = 0; i < dy.length; i++)
 {
 	//change to integer
 	setPixel(i,0,round(dy[i]));	
 }
 List.setMeasurements;
-dym = List.getValue("Mode");
-print("mode y: " + dym);
-
-Array.print(x1);
-Array.print(x2);
+dym = List.getValue("Mode")-dOff;
+run("Close");
+print("shift y: " + dym);
 
 //apply offsets to original image
+selectWindow("im2");
+run("Translate...", "x="+dxm+" y="+dym+" interpolation=None");
 
 //add results
+imageCalculator("Add create 32-bit", "im1","im2");
+rename("Lutz Result");
+setMinAndMax(27700, 32975);
+
+//save results
+dir1 = File.directory;
+getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
+saveAs("Tiff", dir1 + "Lutz_Result_" + d2s(year,0) + d2s(month+1,0) + d2s(dayOfMonth,0) + ".tif");
+setLocation(0,0);
