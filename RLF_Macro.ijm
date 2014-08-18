@@ -45,8 +45,8 @@ run("Analyze Particles...", "size=1-infinity circularity=0.85-1.00 show=Masks ex
 selectWindow("findEdge.dcm");
 setAutoThreshold("Default");
 run("Create Mask");
-//run("Distance Map");
-run("Exact Euclidean Distance Transform (3D)");
+run("Distance Map");
+//run("Exact Euclidean Distance Transform (3D)");
 
 //index into distance map to find distances to each BB
 cnt = roiManager("count");
