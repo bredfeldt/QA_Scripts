@@ -13,18 +13,19 @@ img_name = getInfo("image.filename");
 print(img_name);
 w = getWidth();
 
+nt = 30;
+sig = 6;
 //Quick emperical threshold sets
 if (w == 1024)
 {
-	nt = 10;
 	mm_px = 0.5597/2;
-	sig = 8;
+	//sig = 6;
 }
 else
 {
-	nt = 150;
+	
 	mm_px = 0.5597;
-	sig = 4;
+	//sig = 3;
 }
 
 run("Duplicate...", "title=findEdge.dcm");
@@ -32,14 +33,14 @@ run("Duplicate...", "title=findBBs.dcm");
 
 selectWindow("findBBs.dcm");
 //Find the BB's in the image
-run("Find Maxima...", "noise="+nt+" output=[Maxima Within Tolerance]");
+run("Find Maxima...", "noise="+nt+" output=[Single Points]");
 //run("Create Mask");
 run("Gaussian Blur...", "sigma="+sig); //attempt to eliminate the delta shaped BB's
-setThreshold(5, 35);
+setThreshold(1, 4);
 //run("Invert");
 //setAutoThreshold("Triangle");
 run("Create Mask");
-run("Analyze Particles...", "size=1-infinity circularity=0.85-1.00 show=Masks exclude add");
+run("Analyze Particles...", "size=1-infinity circularity=0.95-1.00 show=Masks exclude add");
 
 //Find the field edge in the image
 selectWindow("findEdge.dcm");
