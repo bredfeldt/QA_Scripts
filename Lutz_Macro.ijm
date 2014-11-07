@@ -6,12 +6,15 @@ roiManager("reset");
 path1 = File.openDialog("Select Image #1");
 path2 = File.openDialog("Select Image #2");
 
+nlev = 800;
+
 open(path1);
 rename("im1");
 dOff = getWidth(); //offset for processing via images (keeps numbers from being negative)
 run("Duplicate...", "title=findBB1.dcm");
-run("Find Maxima...", "noise=100 output=[Maxima Within Tolerance]");
-run("Analyze Particles...", "size=1-infinity circularity=0.85-1.00 show=Masks exclude add");
+run("Find Maxima...", "noise="+nlev+" output=[Maxima Within Tolerance]");
+run("Invert");
+run("Analyze Particles...", "size=1-infinity circularity=0.0-1.00 show=Masks exclude add");
 run("Close");
 cnt = roiManager("count");
 x1 = newArray(cnt);
@@ -26,14 +29,14 @@ for (i = 0; i < cnt; i++)
 	y1[i] = List.getValue("Y");
 }
 
-
 roiManager("reset");
 open(path2);
 rename("im2");
 run("Flip Horizontally");
 run("Duplicate...", "title=findBB2.dcm");
-run("Find Maxima...", "noise=100 output=[Maxima Within Tolerance]");
-run("Analyze Particles...", "size=1-infinity circularity=0.85-1.00 show=Masks exclude add");
+run("Find Maxima...", "noise="+nlev+" output=[Maxima Within Tolerance]");
+run("Invert");
+run("Analyze Particles...", "size=1-infinity circularity=0.0-1.00 show=Masks exclude add");
 run("Close");
 cnt = roiManager("count");
 x2 = newArray(cnt);
@@ -93,7 +96,7 @@ run("Translate...", "x="+dxm+" y="+dym+" interpolation=None");
 //add results
 imageCalculator("Add create 32-bit", "im1","im2");
 rename("Lutz Result");
-setMinAndMax(27700, 32975);
+//setMinAndMax(27700, 32975);
 
 //save results
 dir1 = File.directory;
