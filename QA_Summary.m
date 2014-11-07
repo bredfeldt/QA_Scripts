@@ -4,22 +4,12 @@
 clear all;
 close all;
 
-%dir1 = 'D:\jbredfel\Box Sync\UM Medical Physics\Monthly QA\DataMining\TX1\AllMonthly\'
+dir1 = 'D:\jbredfel\Box Sync\UM Medical Physics\Monthly QA\DataMining\TX1\AllMonthly\'
 %dir1 = 'D:\jbredfel\Box Sync\UM Medical Physics\Monthly QA\DataMining\Annual\'
 %dir1 = 'D:\jbredfel\Box Sync\UM Medical Physics\Monthly QA\DataMining\TX3\';
-dir1 = 'D:\jbredfel\Box Sync\UM Medical Physics\Monthly QA\DataMining\TX4\';
+%dir1 = 'D:\jbredfel\Box Sync\UM Medical Physics\Monthly QA\DataMining\TX4\';
 
-%photon cells
-phDateC = 'B2';
-phPhantC = 'C5';
-phDoneC = 'F2';
-phCheckC = 'I2';
-phElecC = 'D5';
-phChIDC = 'I5';
-mvOut6C = 'F41';
-mvOut6ErC = 'F42';
-mvOut16C = 'F32';
-mvOut16ErC = 'F33';
+
 
 f6mv = fopen([dir1 'f6mv.csv'],'w');
 f16mv = fopen([dir1 'f16mv.csv'],'w');
@@ -33,6 +23,7 @@ list1 = dir(dir1);
 
 %loop through all files
 for i = 3:length(list1)
+%for i = 91
 
     
     fn = fullfile(dir1,list1(i).name);
@@ -50,55 +41,109 @@ for i = 3:length(list1)
  
     disp(['Importing ' list1(i).name]);
  
+    [~, ~, T] = xlsread(fn,1);
+    T(cellfun(@(x) ~isempty(x) && isnumeric(x) && isnan(x),T)) = {''};    
+    
     %[~,phDate] = xlsread(fn,5,'B320');    
     
+    %Format for the monthly output check spreadsheet
+    sizeT = size(T);
+    phDateC = sub2ind(sizeT,2,2);
+    phPhantC = sub2ind(sizeT,5,3);
+    phDoneC = sub2ind(sizeT,2,6);
+    phCheckC = sub2ind(sizeT,2,9);
+    phElecC = sub2ind(sizeT,5,4);
+    phChIDC = sub2ind(sizeT,5,9);
+    %Determine if the format includes FFF entries
+    fff = T{sub2ind(sizeT,15,3)};
+    if isempty(fff)
+        %non-fff format
+        %photon cells
+        mvOut6C = sub2ind(sizeT,41,6);
+        mvOut6ErC = sub2ind(sizeT,42,6);
+        adj6C = sub2ind(sizeT,43,2);
+        adjOut6C = sub2ind(sizeT,43,6);
+        adjOut6ErC = sub2ind(sizeT,44,6);
+     
+        mvOut16C = sub2ind(sizeT,32,6);
+        mvOut16ErC = sub2ind(sizeT,33,6);
+        adj16C = sub2ind(sizeT,34,2);
+        adjOut16C = sub2ind(sizeT,34,6);
+        adjOut16ErC = sub2ind(sizeT,35,6);        
+    else
+        %new fff format
+        %photon cells
+        mvOut6C = sub2ind(sizeT,42,6);
+        mvOut6ErC = sub2ind(sizeT,43,6);
+        adj6C = sub2ind(sizeT,44,2);
+        adjOut6C = sub2ind(sizeT,44,6);
+        adjOut6ErC = sub2ind(sizeT,45,6);
+        
+        mvOut16C = sub2ind(sizeT,33,6);
+        mvOut16ErC = sub2ind(sizeT,34,6);
+        adj16C = sub2ind(sizeT,35,2);
+        adjOut16C = sub2ind(sizeT,35,6);
+        adjOut16ErC = sub2ind(sizeT,36,6);        
+    end
+    
     %Get date
-    [~,phDate] = xlsread(fn,1,phDateC);    
+    phDate = T{phDateC};    
     if isempty(phDate)
-        phDate = {''};
+        phDate = '';
     end
         
     %Get phantom
-    [~,phPhant] = xlsread(fn,1,phPhantC);
+    phPhant = T{phPhantC};
     if isempty(phPhant)
-        phPhant = {''};
+        phPhant = '';
     end
     
     %Get electrometer
-    [~,phElec] = xlsread(fn,1,phElecC);
+    phElec = T{phElecC};
     if isempty(phElec)
-        phElec = {''};
+        phElec = '';
     end
     
     %Get chamber ID
-    [~,phChID] = xlsread(fn,1,phChIDC);
+    phChID = T{phChIDC};
     if isempty(phChID)
-        phChID = {''};
+        phChID = '';
     end
     
     %Get done ID
-    [~,phDone] = xlsread(fn,1,phDoneC);
+    phDone = T{phDoneC};
     if isempty(phDone)
-        phDone = {''};
+        phDone = '';
     end
     
     %Get checked ID
-    [~,phCheck] = xlsread(fn,1,phCheckC);
+    phCheck = T{phCheckC};
     if isempty(phCheck)
-        phCheck = {''};
+        phCheck = '';
     end
     
     %Get output for each beam
-    mvOut6 = xlsread(fn,1,mvOut6C);
-    mvOut6Er = xlsread(fn,1,mvOut6ErC);
+    mvOut6 = T{mvOut6C};
+    mvOut6Er = T{mvOut6ErC};
 
     %Get error for each beam
-    mvOut16 = xlsread(fn,1,mvOut16C);
-    mvOut16Er = xlsread(fn,1,mvOut16ErC);
+    mvOut16 = T{mvOut16C};
+    mvOut16Er = T{mvOut16ErC};
+    
+    %Get if adjusted
+    adj6 = T{adj6C};
+    adj16 = T{adj16C};
+    %if strcmpi(adj6,'yes');
+    %    x = 2;
+    %end
+    adjOut6 = T{adjOut6C};
+    adjOut6Er = T{adjOut6ErC};
+    adjOut16 = T{adjOut16C};
+    adjOut16Er = T{adjOut16ErC};    
 
     %Write data into csv output file
-    fprintf(f6mv,'%s,%s,%s,%s,%s,%s,%04f,%04f\r\n',phDate{1},phPhant{1},phElec{1},phChID{1},phDone{1},phCheck{1},mvOut6,mvOut6Er);
-    fprintf(f16mv,'%s,%s,%s,%s,%s,%s,%04f,%04f\r\n',phDate{1},phPhant{1},phElec{1},phChID{1},phDone{1},phCheck{1},mvOut16,mvOut16Er);
+    fprintf(f6mv,'%s, %s, %s, %s, %s, %s, %04f, %04f, %s, %04f, %04f\r\n',phDate,phPhant,phElec,phChID,phDone,phCheck,mvOut6,mvOut6Er, adj6, adjOut6, adjOut6Er);
+    fprintf(f16mv,'%s, %s, %s, %s, %s, %s, %04f, %04f, %s, %04f, %04f\r\n',phDate,phPhant,phElec,phChID,phDone,phCheck,mvOut16,mvOut16Er,adj16,adjOut16,adjOut16Er);
 
 
 
